@@ -1,0 +1,90 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+    <meta charset="UTF-8">
+    <meta http-equiv="X-UA-Compatible" content="IE=edge">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <link rel="stylesheet" href="/css/option.css">
+    <title>オプション - pixiv ポップアップビューアー</title>
+</head>
+<body>
+    <div class="frame">
+        <h2>ポップアップ</h2>
+
+        <div class="option">
+            <div class="option_name">対象</div>
+            <div class="option_value">
+                <select id="popupTarget">
+                    <option value='a[href^="/artworks/"], a[href^="/novel/show.php?"]' selected>イラスト・マンガ・小説</option>
+                    <option value='a[href^="/artworks/"]'>イラスト・マンガ</option>
+                    <option value='a[href^="/novel/show.php?"]'>小説</option>
+                </select>
+            </div>
+        </div>
+
+        <div class="option">
+            <div class="option_name">横幅</div>
+            <div class="option_value">
+                <input type="number" id="popupWidth" value="80" step="1" min="1" max="99">（％）
+            </div>
+        </div>
+
+        <div class="option">
+            <div class="option_name">縦幅</div>
+            <div class="option_value">
+                <input type="number" id="popupHeight" value="90" step="1" min="1" max="99">（％）
+            </div>
+        </div>
+
+        <div class="option">
+            <div class="option_name">拡大率</div>
+            <div class="option_value">
+                <input type="number" id="popupZoom" value="100" step="1" min="1" max="200">（％）
+            </div>
+        </div>
+
+        <div class="option">
+            <div class="option_name">最大化状態のときに拡大しない</div>
+            <div class="option_value">
+                <input type="checkbox" id="notZoomWhenExpand"><label for="notZoomWhenExpand"><div></div></label>
+            </div>
+        </div>
+
+        <div class="option">
+            <div class="option_name">モバイルサイトを表示する</div>
+            <div class="option_value">
+                <input type="checkbox" id="mobileView"><label for="mobileView"><div></div></label>
+            </div>
+        </div>
+
+        <div class="option">
+            <div class="option_name">"すべて見る"を自動でクリックする</div>
+            <div class="option_value">
+                <input type="checkbox" id="autoSeeAll"><label for="autoSeeAll"><div></div></label>
+            </div>
+        </div>
+    </div>
+
+    <div class="frame">
+        <h2>キーボードショートカット</h2>
+        <p>前後の作品に切り替え・最大化/縮小をキーボードで操作できます。下記のリンクから設定してください。。</p>
+        <p>chrome://extensions/shortcuts</p>
+    </div>
+
+    <div class="frame">
+        <h2>お問い合わせ</h2>
+        <p>質問・不具合・要望などはこちらからどうぞ</p>
+        <ul>
+            <li><a href="https://chrome.google.com/webstore/detail/pixiv-%E3%83%9D%E3%83%83%E3%83%97%E3%82%A2%E3%83%83%E3%83%97%E3%83%93%E3%83%A5%E3%83%BC%E3%82%A2%E3%83%BC/anapldodgadkolnpaffkaekhfbfdbdgc" target="_blank" rel="noopener">ストアページサポート</a></li>
+        </ul>
+    </div>
+
+    <div class="frame">
+        <h2>支援</h2>
+        <a href="https://www.amazon.jp/hz/wishlist/ls/1JLK0JHO9331X?ref_=wl_share" class="donate" target="_blank" rel="noopener">欲しい物リスト</a>
+        <p>ストアページの評価・コメントも励みになります</p>
+    </div>
+
+    <script src="/js/options.js"></script>
+</body>
+</html>

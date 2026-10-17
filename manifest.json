@@ -1,0 +1,57 @@
+{
+   "background": {
+      "service_worker": "js/service_worker.js",
+      "type": "module"
+   },
+   "commands": {
+      "add_bookmark": {
+         "description": "ブックマークに追加する",
+         "global": false
+      },
+      "close_popup": {
+         "description": "ポップアップを閉じる",
+         "global": false
+      },
+      "expand": {
+         "description": "最大化/縮小する",
+         "global": false
+      },
+      "next_work": {
+         "description": "次の作品を表示する",
+         "global": false
+      },
+      "prev_work": {
+         "description": "前の作品を表示する",
+         "global": false
+      }
+   },
+   "content_scripts": [ {
+      "css": [ "css/script.css" ],
+      "js": [ "js/script.js" ],
+      "matches": [ "https://www.pixiv.net/*" ]
+   } ],
+   "declarative_net_request": {
+      "rule_resources": [ {
+         "enabled": false,
+         "id": "ruleset",
+         "path": "json/rules.json"
+      } ]
+   },
+   "description": "pixivのイラスト・マンガ・小説を、ページ移動せずにポップアップで表示する拡張機能です。",
+   "host_permissions": [ "https://www.pixiv.net/*" ],
+   "icons": {
+      "128": "icon/icon128.png",
+      "16": "icon/icon16.png",
+      "32": "icon/icon32.png",
+      "48": "icon/icon48.png"
+   },
+   "key": "MIIBIjANBgkqhkiG9w0BAQEFAAOCAQ8AMIIBCgKCAQEA5vWBsfA7eateHH6wsuuFwzMC3zAbw5QgsYmI+WgXWqWnZ9SNXpZt9BpB0M3iStm48UTSlCPRtQz7vKdgoikKOEX6oAh3Fm9CXh1iy557UBQg0dzYoJckTkyEIZXGlA+/rfQWVGfScfeSFIo9ne2vAe8PGz20cbAnsb6hrHkwR4P3/3Ao3/GxLBo6uhQrAKkFVo/2RI0AFUYl9wsjrnbsXGl77ne0mVfM51gVgyE3u9Lq2G2XexDexYjmOZOlAsfvIFGubrKGKflv7ONRv5oA5VyTbIv011s8nWQihQsTH3QkkcWF7GtZm5pIGzzC8klPDa2lZnBeL5vkfgnw5YuruwIDAQAB",
+   "manifest_version": 3,
+   "name": "pixiv ポップアップビューアー",
+   "options_ui": {
+      "page": "html/options.html"
+   },
+   "permissions": [ "storage", "declarativeNetRequest" ],
+   "update_url": "https://clients2.google.com/service/update2/crx",
+   "version": "1.6.5"
+}
