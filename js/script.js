@@ -65,6 +65,14 @@ window.onload = async () => {
         observer.observe(target, config);
     }
 
+    const closePopupOnEscape = event => {
+        if (event.key === "Escape") iframe_container.click();
+    }
+    document.addEventListener("keydown", closePopupOnEscape);
+    iframe.addEventListener("load", () => {
+        iframe.contentDocument.addEventListener("keydown", closePopupOnEscape);
+    });
+
     switch_expand_button.onclick = function (event) {
         event.stopPropagation();
 
