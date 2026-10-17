@@ -65,12 +65,22 @@ window.onload = async () => {
         observer.observe(target, config);
     }
 
-    const closePopupOnEscape = event => {
-        if (event.key === "Escape") iframe_container.click();
+    const handlePopupKeydown = event => {
+        if (event.key === "Escape") {
+            iframe_container.click();
+            return;
+        }
+
+        if (!iframe_container.classList.contains("show")) return;
+
+        if (event.key === "ArrowLeft" || event.key === "ArrowRight") {
+            event.preventDefault();
+            (event.key === "ArrowLeft" ? previous_work_button : next_work_button).click();
+        }
     }
-    document.addEventListener("keydown", closePopupOnEscape);
+    document.addEventListener("keydown", handlePopupKeydown);
     iframe.addEventListener("load", () => {
-        iframe.contentDocument.addEventListener("keydown", closePopupOnEscape);
+        iframe.contentDocument.addEventListener("keydown", handlePopupKeydown);
     });
 
     switch_expand_button.onclick = function (event) {
