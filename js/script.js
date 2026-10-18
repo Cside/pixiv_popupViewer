@@ -182,7 +182,7 @@ window.onload = async () => {
 
         aTags.forEach(element => {
             element.onclick = function (event) {
-                if (!event.metaKey) return;
+                if (!event.shiftKey) return;
                 event.preventDefault();
 
                 for (let i = 0; i < searchClass.length; i++) {
