@@ -1,14 +1,11 @@
 window.onload = async () => {
     let aTags;
-    let timerId = 0;
+    let activeImageRequest;
+    let imageRequestId = 0;
     const searchClass = ["_one-click-bookmark", "js-click-trackable", "opener", "item"];
     let options = {
-        popupTarget: undefined,
         popupWidth :undefined,
         popupHeight :undefined,
-        popupZoom : undefined,
-        notZo :undefined,
-        autoSeeAll :undefined,
     };
     const observer = new MutationObserver(setEventHandler);
     const target = document.body;
@@ -16,11 +13,15 @@ window.onload = async () => {
 
     observer.observe(target, config);
 
-    const iframe_container = document.createElement("div");
-    iframe_container.id = "pixiv_popupViewer_container";
-    const iframe = document.createElement("iframe");
-    iframe.id = "pixiv_popupViewer";
-    if (localStorage.getItem("theme") === "dark") iframe.classList.add("dark");
+    const popupContainer = document.createElement("div");
+    popupContainer.id = "pixiv_popupViewer_container";
+    const image = document.createElement("img");
+    image.id = "pixiv_popupViewer";
+    image.alt = "";
+    image.draggable = false;
+    const image_status = document.createElement("div");
+    image_status.id = "pixiv_popupViewer_status";
+    image_status.textContent = "画像を読み込み中...";
 
     const switch_expand_button = document.createElement("div");
     switch_expand_button.id = "pixiv_popupViewer_switch_expand_button";
@@ -37,29 +38,23 @@ window.onload = async () => {
     next_work_button.innerHTML = '<svg aria-hidden="true" width="24px" height="24px" focusable="false" data-prefix="fas" data-icon="angle-right" role="img" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 256 512"><path fill="white" d="M224.3 273l-136 136c-9.4 9.4-24.6 9.4-33.9 0l-22.6-22.6c-9.4-9.4-9.4-24.6 0-33.9l96.4-96.4-96.4-96.4c-9.4-9.4-9.4-24.6 0-33.9L54.3 103c9.4-9.4 24.6-9.4 33.9 0l136 136c9.5 9.4 9.5 24.6.1 34z"></path></svg>';
     next_work_button.title = "次の作品";
 
-    const alert_bookmark = document.createElement("div");
-    alert_bookmark.id = "pixiv_popupViewer_alert_bookmark";
-    alert_bookmark.innerHTML = '<svg viewBox="0 0 32 32" width="72px" height="72px" class="sc-j89e3c-1 bXjFLc"><path d=" M21,5.5 C24.8659932,5.5 28,8.63400675 28,12.5 C28,18.2694439 24.2975093,23.1517313 17.2206059,27.1100183 C16.4622493,27.5342993 15.5379984,27.5343235 14.779626,27.110148 C7.70250208,23.1517462 4,18.2694529 4,12.5 C4,8.63400691 7.13400681,5.5 11,5.5 C12.829814,5.5 14.6210123,6.4144028 16,7.8282366 C17.3789877,6.4144028 19.170186,5.5 21,5.5 Z"></path><path d="M16,11.3317089 C15.0857201,9.28334665 13.0491506,7.5 11,7.5 C8.23857625,7.5 6,9.73857647 6,12.5 C6,17.4386065 9.2519779,21.7268174 15.7559337,25.3646328 C15.9076021,25.4494645 16.092439,25.4494644 16.2441073,25.3646326 C22.7480325,21.7268037 26,17.4385986 26,12.5 C26,9.73857625 23.7614237,7.5 21,7.5 C18.9508494,7.5 16.9142799,9.28334665 16,11.3317089 Z" class="sc-j89e3c-0 dUurgf"></path></svg>';
-    alert_bookmark.title = "ブックマーク";
-
     options = await getStorageOptions();
     compressPopup(options.popupWidth, options.popupHeight);
 
-    target.append(iframe_container);
-    iframe_container.append(iframe, switch_expand_button, previous_work_button, next_work_button, alert_bookmark);
+    target.append(popupContainer);
+    popupContainer.append(image, image_status, switch_expand_button, previous_work_button, next_work_button);
 
-    window.onstorage = function (e) {
-        if (e.key !== "theme") return;
+    popupContainer.onclick = function (event) {
+        if (event.target !== popupContainer) return;
+        if (!popupContainer.classList.contains("show")) return;
 
-        if (localStorage.getItem("theme") === "dark") iframe.classList.add("dark");
-        else iframe.classList.remove("dark");
-    }
-
-    iframe_container.onclick = function () {
-        if (!iframe_container.classList.contains("show")) return;
-
-        iframe.contentWindow.location.replace("about:blank");
-        iframe_container.classList.remove("show");
+        activeImageRequest?.abort();
+        activeImageRequest = undefined;
+        imageRequestId++;
+        image.removeAttribute("src");
+        image.hidden = true;
+        image_status.hidden = true;
+        popupContainer.classList.remove("show");
 
         document.getElementsByTagName("html")[0].style.overflowY = "auto";
         observer.observe(target, config);
@@ -67,11 +62,11 @@ window.onload = async () => {
 
     const handlePopupKeydown = event => {
         if (event.key === "Escape") {
-            iframe_container.click();
+            popupContainer.click();
             return;
         }
 
-        if (!iframe_container.classList.contains("show")) return;
+        if (!popupContainer.classList.contains("show")) return;
 
         if (event.key === "ArrowLeft" || event.key === "ArrowRight") {
             event.preventDefault();
@@ -79,14 +74,11 @@ window.onload = async () => {
         }
     }
     document.addEventListener("keydown", handlePopupKeydown);
-    iframe.addEventListener("load", () => {
-        iframe.contentDocument.addEventListener("keydown", handlePopupKeydown);
-    });
 
     switch_expand_button.onclick = function (event) {
         event.stopPropagation();
 
-        if (iframe.classList.contains("expand")) {
+        if (image.classList.contains("expand")) {
             switch_expand_button.innerHTML = '<svg aria-hidden="true" width="24px" height="24px" focusable="false" data-prefix="fas" data-icon="expand" role="img" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 448 512"><path fill="white" d="M0 180V56c0-13.3 10.7-24 24-24h124c6.6 0 12 5.4 12 12v40c0 6.6-5.4 12-12 12H64v84c0 6.6-5.4 12-12 12H12c-6.6 0-12-5.4-12-12zM288 44v40c0 6.6 5.4 12 12 12h84v84c0 6.6 5.4 12 12 12h40c6.6 0 12-5.4 12-12V56c0-13.3-10.7-24-24-24H300c-6.6 0-12 5.4-12 12zm148 276h-40c-6.6 0-12 5.4-12 12v84h-84c-6.6 0-12 5.4-12 12v40c0 6.6 5.4 12 12 12h124c13.3 0 24-10.7 24-24V332c0-6.6-5.4-12-12-12zM160 468v-40c0-6.6-5.4-12-12-12H64v-84c0-6.6-5.4-12-12-12H12c-6.6 0-12 5.4-12 12v124c0 13.3 10.7 24 24 24h124c6.6 0 12-5.4 12-12z"></path></svg>';
             compressPopup(options.popupWidth, options.popupHeight);
             switch_expand_button.title = "最大化";
@@ -99,10 +91,56 @@ window.onload = async () => {
 
     previous_work_button.onclick = next_work_button.onclick = changeWork;
 
+    async function loadWorkImage(aTag) {
+        activeImageRequest?.abort();
+        activeImageRequest = new AbortController();
+        const requestId = ++imageRequestId;
+        const workId = aTag.href.match(/\/artworks\/(\d+)/)?.[1];
+
+        image.hidden = true;
+        image.removeAttribute("src");
+        image_status.textContent = "画像を読み込み中...";
+        image_status.hidden = false;
+
+        try {
+            if (!workId) throw new Error(`作品 ID を取得できません: ${aTag.href}`);
+
+            const response = await fetch(`https://www.pixiv.net/ajax/illust/${workId}?lang=ja`, {
+                signal: activeImageRequest.signal
+            });
+            if (!response.ok) throw new Error(`作品情報の取得に失敗しました: HTTP ${response.status}`);
+
+            const data = await response.json();
+            const imageUrl = data?.body?.urls?.regular;
+            if (data?.error || typeof imageUrl !== "string") {
+                throw new Error(data?.message || "作品情報に画像 URL がありません");
+            }
+            if (requestId !== imageRequestId) return;
+
+            image.onload = () => {
+                if (requestId !== imageRequestId) return;
+                image.hidden = false;
+                image_status.hidden = true;
+            };
+            image.onerror = () => {
+                if (requestId !== imageRequestId) return;
+                image_status.textContent = "画像を読み込めませんでした";
+                console.error(`作品 ${workId} の画像を読み込めませんでした`);
+            };
+            image.src = imageUrl;
+        } catch (error) {
+            if (error.name === "AbortError") return;
+            if (requestId !== imageRequestId) return;
+
+            image_status.textContent = "画像を取得できませんでした";
+            console.error(`作品 ${workId || aTag.href} の画像を取得できませんでした`, error);
+        }
+    }
+
     function changeWork(event) {
         event.stopPropagation();
 
-        const currentIndex = Number(iframe.dataset.currentIndex);
+        const currentIndex = Number(image.dataset.currentIndex);
 
         if (event.target.id === "pixiv_popupViewer_previous_work_button") {
             for (let i = currentIndex; 0 < i; i--) {
@@ -115,8 +153,8 @@ window.onload = async () => {
 
                 next_work_button.classList.add("show");
 
-                iframe.contentWindow.location.replace(aTag.href);
-                iframe.dataset.currentIndex = i;
+                image.dataset.currentIndex = i;
+                loadWorkImage(aTag);
 
                 return;
             }
@@ -131,8 +169,8 @@ window.onload = async () => {
 
                 previous_work_button.classList.add("show");
 
-                iframe.contentWindow.location.replace(aTag.href);
-                iframe.dataset.currentIndex = i;
+                image.dataset.currentIndex = i;
+                loadWorkImage(aTag);
 
                 return;
             }
@@ -140,8 +178,7 @@ window.onload = async () => {
     }
 
     function setEventHandler() {
-        if (options.popupTarget === undefined) aTags = Array.from(document.querySelectorAll('a[href^="/artworks/"], a[href^="/novel/show.php?"]'));
-        else aTags = Array.from(document.querySelectorAll(options.popupTarget));
+        aTags = Array.from(document.querySelectorAll('a[href^="/artworks/"]'));
 
         aTags.forEach(element => {
             element.onclick = function (event) {
@@ -159,91 +196,49 @@ window.onload = async () => {
                 if (element.href === aTags[aTags.length - 1].href) next_work_button.classList.remove("show");
                 else next_work_button.classList.add("show");
 
-                iframe.dataset.currentIndex = aTags.findIndex(aTag => aTag === element);
-
-                iframe.contentWindow.location.replace(element.href);
-                iframe_container.classList.add("show");
+                image.dataset.currentIndex = aTags.findIndex(aTag => aTag === element);
+                popupContainer.classList.add("show");
 
                 document.getElementsByTagName("html")[0].style.overflowY = "hidden";
-
-                const autoSeeAll_interval = setInterval(() => {
-                    if (!options.autoSeeAll) return;
-
-                    if (!iframe_container.classList.contains("show")) clearInterval(autoSeeAll_interval);
-                    if (iframe.contentWindow.document.querySelector("button.sc-9222a8f6-0.eJosta")) iframe.contentWindow.document.querySelector("button.sc-9222a8f6-0.eJosta").click();
-                    if (iframe.contentWindow.document.querySelector("button.sc-e3cb8b83-0.LDEei")) iframe.contentWindow.document.querySelector("button.sc-e3cb8b83-0.LDEei").click();
-                    if (iframe.contentWindow.document.querySelector(".button-link")) iframe.contentWindow.document.querySelector(".button-link").click();
-                }, 100)
-
-                zoomPopup();
+                loadWorkImage(element);
             };
         });
     }
 
     function getStorageOptions() {
         return new Promise((resolve, reject) => {
-            chrome.storage.local.get(["popupTarget", "popupWidth", "popupHeight", "popupZoom", "notZoomWhenExpand", "autoSeeAll"], items => resolve(items))
+            chrome.storage.local.get(["popupWidth", "popupHeight"], items => resolve(items))
         })
     }
 
     function compressPopup(width = "80%", height = "90%") {
-        iframe.classList.remove("expand");
+        image.classList.remove("expand");
 
-        iframe.style.width = width + "%";
-        iframe.style.height = height + "%";
+        image.style.width = width + "%";
+        image.style.height = height + "%";
     }
 
     function expandPopup() {
-        iframe.classList.add("expand");
-        iframe.style.width = "100%";
-        iframe.style.height = "100%";
-    }
-
-    function zoomPopup() {
-        if (options.popupZoom === undefined) return;
-
-        const interval = setInterval(() => {
-            if (!iframe_container.classList.contains("show")) clearInterval(interval);
-
-            if (iframe.contentDocument.body) {
-                if (options.notZoomWhenExpand && iframe.classList.contains("expand")) iframe.contentDocument.body.style.zoom = "normal";
-                else iframe.contentDocument.body.style.zoom = options.popupZoom + "%";
-            }
-        }, 100);
+        image.classList.add("expand");
+        image.style.width = "100%";
+        image.style.height = "100%";
     }
 
     chrome.storage.onChanged.addListener(items => {
-        if (items.popupTarget) options.popupTarget = items.popupTarget.newValue;
         if (items.popupWidth) options.popupWidth = items.popupWidth.newValue;
         if (items.popupHeight) options.popupHeight = items.popupHeight.newValue;
-        if (items.popupZoom) options.popupZoom = items.popupZoom.newValue;
-        if (items.notZoomWhenExpand) options.notZoomWhenExpand = items.notZoomWhenExpand.newValue;
-        if (items.autoSeeAll) options.autoSeeAll = items.autoSeeAll.newValue;
 
-        if (iframe.classList.contains("expand")) return;
+        if (image.classList.contains("expand")) return;
 
         compressPopup(options.popupWidth, options.popupHeight);
     })
 
     chrome.runtime.onMessage.addListener(request => {
-        if (!iframe_container.classList.contains("show")) return;
+        if (!popupContainer.classList.contains("show")) return;
 
         if (request === "expand") switch_expand_button.click();
         if (request === "prev_work") previous_work_button.click();
         if (request === "next_work") next_work_button.click();
-        if (request === "add_bookmark") {
-            if (iframe.contentWindow.document.querySelector("button.gtm-main-bookmark")) iframe.contentWindow.document.querySelector("button.gtm-main-bookmark").click();
-            else if (iframe.contentWindow.document.querySelector(".works-bookmark-button.work-interactions-panel-item > svg[xmlns]")) iframe.contentWindow.document.querySelector(".works-bookmark-button.work-interactions-panel-item").click();
-            else return;
-
-            alert_bookmark.classList.add("show");
-
-            clearTimeout(timerId);
-
-            timerId = setTimeout(() => {
-                alert_bookmark.classList.remove("show");
-            }, 1000);
-        }
-        if (request === "close_popup") iframe_container.click();
+        if (request === "close_popup") popupContainer.click();
     })
 }
