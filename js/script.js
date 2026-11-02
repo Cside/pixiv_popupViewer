@@ -12,7 +12,44 @@ window.onload = async () => {
     const target = document.body;
     const config = { childList: true, subtree: true };
 
-    observer.observe(target, config);
+    function isSupportedRoute() {
+        return /^\/(?:tags\/|users\/|search)/.test(location.pathname);
+    }
+
+    function removePopupSearchButtons() {
+        document.querySelectorAll(`.${popupSearchButtonClass}`).forEach(button => button.remove());
+        document.querySelectorAll('a[href^="/artworks/"]').forEach(element => {
+            element.onclick = null;
+        });
+        aTags = [];
+    }
+
+    function syncRouteState() {
+        if (!isSupportedRoute()) {
+            if (typeof closePopup === "function") closePopup();
+            observer.disconnect();
+            removePopupSearchButtons();
+            return;
+        }
+
+        observer.observe(target, config);
+        setEventHandler();
+    }
+
+    window.addEventListener("popstate", syncRouteState);
+
+    const originalPushState = history.pushState;
+    const originalReplaceState = history.replaceState;
+    history.pushState = function (...args) {
+        const result = originalPushState.apply(this, args);
+        queueMicrotask(syncRouteState);
+        return result;
+    };
+    history.replaceState = function (...args) {
+        const result = originalReplaceState.apply(this, args);
+        queueMicrotask(syncRouteState);
+        return result;
+    };
 
     const popupContainer = document.createElement("div");
     popupContainer.id = "pixiv_popupViewer_container";
@@ -222,6 +259,11 @@ window.onload = async () => {
     }
 
     function setEventHandler() {
+        if (!isSupportedRoute()) {
+            removePopupSearchButtons();
+            return;
+        }
+
         aTags = Array.from(document.querySelectorAll('a[href^="/artworks/"]'));
 
         aTags.forEach(element => {
@@ -277,4 +319,6 @@ window.onload = async () => {
         if (request === "next_work") next_work_button.click();
         if (request === "close_popup") popupContainer.click();
     })
+
+    syncRouteState();
 }
