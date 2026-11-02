@@ -16,6 +16,8 @@ window.onload = async () => {
 
     const popupContainer = document.createElement("div");
     popupContainer.id = "pixiv_popupViewer_container";
+    const imageContainer = document.createElement("div");
+    imageContainer.id = "pixiv_popupViewer_image_container";
     const image = document.createElement("img");
     image.id = "pixiv_popupViewer";
     image.alt = "";
@@ -43,10 +45,10 @@ window.onload = async () => {
     compressPopup(options.popupWidth, options.popupHeight);
 
     target.append(popupContainer);
-    popupContainer.append(image, image_status, switch_expand_button, previous_work_button, next_work_button);
+    imageContainer.append(image);
+    popupContainer.append(imageContainer, image_status, switch_expand_button, previous_work_button, next_work_button);
 
-    popupContainer.onclick = function (event) {
-        if (event.target !== popupContainer) return;
+    function closePopup() {
         if (!popupContainer.classList.contains("show")) return;
 
         activeImageRequest?.abort();
@@ -59,6 +61,14 @@ window.onload = async () => {
 
         document.getElementsByTagName("html")[0].style.overflowY = "auto";
         observer.observe(target, config);
+    }
+
+    popupContainer.onclick = function (event) {
+        const eventPath = event.composedPath();
+        if (eventPath.includes(image)) return;
+        if (eventPath.includes(previous_work_button) || eventPath.includes(next_work_button)) return;
+
+        closePopup();
     }
 
     const handlePopupKeydown = event => {
@@ -77,9 +87,7 @@ window.onload = async () => {
     document.addEventListener("keydown", handlePopupKeydown);
 
     switch_expand_button.onclick = function (event) {
-        event.stopPropagation();
-
-        if (image.classList.contains("expand")) {
+        if (imageContainer.classList.contains("expand")) {
             switch_expand_button.innerHTML = '<svg aria-hidden="true" width="24px" height="24px" focusable="false" data-prefix="fas" data-icon="expand" role="img" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 448 512"><path fill="white" d="M0 180V56c0-13.3 10.7-24 24-24h124c6.6 0 12 5.4 12 12v40c0 6.6-5.4 12-12 12H64v84c0 6.6-5.4 12-12 12H12c-6.6 0-12-5.4-12-12zM288 44v40c0 6.6 5.4 12 12 12h84v84c0 6.6 5.4 12 12 12h40c6.6 0 12-5.4 12-12V56c0-13.3-10.7-24-24-24H300c-6.6 0-12 5.4-12 12zm148 276h-40c-6.6 0-12 5.4-12 12v84h-84c-6.6 0-12 5.4-12 12v40c0 6.6 5.4 12 12 12h124c13.3 0 24-10.7 24-24V332c0-6.6-5.4-12-12-12zM160 468v-40c0-6.6-5.4-12-12-12H64v-84c0-6.6-5.4-12-12-12H12c-6.6 0-12 5.4-12 12v124c0 13.3 10.7 24 24 24h124c6.6 0 12-5.4 12-12z"></path></svg>';
             compressPopup(options.popupWidth, options.popupHeight);
             switch_expand_button.title = "最大化";
@@ -142,8 +150,9 @@ window.onload = async () => {
         event.stopPropagation();
 
         const currentIndex = Number(image.dataset.currentIndex);
+        const button = event.currentTarget;
 
-        if (event.target.id === "pixiv_popupViewer_previous_work_button") {
+        if (button === previous_work_button) {
             for (let i = currentIndex; 0 < i; i--) {
                 const aTag = aTags[i];
 
@@ -159,7 +168,7 @@ window.onload = async () => {
 
                 return;
             }
-        } else if (event.target.id === "pixiv_popupViewer_next_work_button") {
+        } else if (button === next_work_button) {
             for (let i = currentIndex; i < aTags.length; i++) {
                 const aTag = aTags[i];
 
@@ -239,23 +248,23 @@ window.onload = async () => {
     }
 
     function compressPopup(width = "80%", height = "90%") {
-        image.classList.remove("expand");
+        imageContainer.classList.remove("expand");
 
-        image.style.width = width + "%";
-        image.style.height = height + "%";
+        imageContainer.style.width = width + "%";
+        imageContainer.style.height = height + "%";
     }
 
     function expandPopup() {
-        image.classList.add("expand");
-        image.style.width = "100%";
-        image.style.height = "100%";
+        imageContainer.classList.add("expand");
+        imageContainer.style.width = "100%";
+        imageContainer.style.height = "100%";
     }
 
     chrome.storage.onChanged.addListener(items => {
         if (items.popupWidth) options.popupWidth = items.popupWidth.newValue;
         if (items.popupHeight) options.popupHeight = items.popupHeight.newValue;
 
-        if (image.classList.contains("expand")) return;
+        if (imageContainer.classList.contains("expand")) return;
 
         compressPopup(options.popupWidth, options.popupHeight);
     })
