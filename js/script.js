@@ -3,6 +3,7 @@ window.onload = async () => {
     let activeImageRequest;
     let imageRequestId = 0;
     const searchClass = ["_one-click-bookmark", "js-click-trackable", "opener", "item"];
+    const popupSearchButtonClass = "pixiv-popup-search-button";
     let options = {
         popupWidth :undefined,
         popupHeight :undefined,
@@ -177,10 +178,46 @@ window.onload = async () => {
         }
     }
 
+    function openPopupFor(aTag) {
+        if (aTag.href === aTags[0].href) previous_work_button.classList.remove("show");
+        else previous_work_button.classList.add("show");
+
+        if (aTag.href === aTags[aTags.length - 1].href) next_work_button.classList.remove("show");
+        else next_work_button.classList.add("show");
+
+        image.dataset.currentIndex = aTags.findIndex(aTagToCheck => aTagToCheck === aTag);
+        popupContainer.classList.add("show");
+
+        document.getElementsByTagName("html")[0].style.overflowY = "hidden";
+        loadWorkImage(aTag);
+    }
+
+    function addPopupSearchButton(element) {
+        if (element.querySelector(`.${popupSearchButtonClass}`)) return;
+
+        const searchButton = document.createElement("button");
+        searchButton.type = "button";
+        searchButton.className = popupSearchButtonClass;
+        searchButton.title = "画像を拡大表示";
+        searchButton.setAttribute("aria-label", "画像を拡大表示");
+        searchButton.innerHTML = '<svg aria-hidden="true" width="14" height="14" viewBox="0 0 512 512" xmlns="http://www.w3.org/2000/svg"><path fill="currentColor" d="M505 442.7L405.3 343c-4.5-4.5-10.6-7-17-7h-16.3c27.6-35.3 44.3-80.5 44.3-129.5C416 93.1 322.9 0 208 0S0 93.1 0 208s93.1 208 208 208c49 0 94.2-16.7 129.5-44.3v16.3c0 6.4 2.5 12.5 7 17L442.7 505c9.4 9.4 24.6 9.4 33.9 0l28.4-28.4c9.3-9.4 9.3-24.6-.1-34zM208 336c-70.7 0-128-57.3-128-128S137.3 80 208 80s128 57.3 128 128-57.3 128-128 128z"/></svg>';
+        searchButton.onclick = function (event) {
+            event.preventDefault();
+            event.stopPropagation();
+            observer.disconnect();
+            openPopupFor(element);
+        };
+
+        element.style.position = "relative";
+        element.appendChild(searchButton);
+    }
+
     function setEventHandler() {
         aTags = Array.from(document.querySelectorAll('a[href^="/artworks/"]'));
 
         aTags.forEach(element => {
+            addPopupSearchButton(element);
+
             element.onclick = function (event) {
                 if (!event.shiftKey) return;
                 event.preventDefault();
@@ -190,18 +227,7 @@ window.onload = async () => {
                 }
 
                 observer.disconnect();
-
-                if (element.href === aTags[0].href) previous_work_button.classList.remove("show");
-                else previous_work_button.classList.add("show");
-
-                if (element.href === aTags[aTags.length - 1].href) next_work_button.classList.remove("show");
-                else next_work_button.classList.add("show");
-
-                image.dataset.currentIndex = aTags.findIndex(aTag => aTag === element);
-                popupContainer.classList.add("show");
-
-                document.getElementsByTagName("html")[0].style.overflowY = "hidden";
-                loadWorkImage(element);
+                openPopupFor(element);
             };
         });
     }

@@ -50,6 +50,41 @@
     display: none;
 }
 
+.pixiv-popup-search-button {
+    position: absolute;
+    top: 8px;
+    right: 8px;
+    z-index: 1;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    width: 32px;
+    height: 32px;
+    padding: 0;
+    border: 0;
+    border-radius: 50%;
+    outline: none;
+    background-color: rgba(0, 0, 0, 0.55);
+    color: #fff;
+    cursor: pointer;
+    box-shadow: 0 2px 8px rgba(0, 0, 0, 0.2);
+}
+
+.pixiv-popup-search-button:hover {
+    background-color: rgba(0, 117, 255, 0.9);
+}
+
+.pixiv-popup-search-button:focus,
+.pixiv-popup-search-button:focus-visible {
+    outline: none;
+}
+
+.pixiv-popup-search-button svg {
+    width: 16px;
+    height: 16px;
+    pointer-events: none;
+}
+
 #pixiv_popupViewer_switch_expand_button {
     z-index: 10001;
     position: fixed;
