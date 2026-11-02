@@ -30,13 +30,6 @@
       "js": [ "js/script.js" ],
       "matches": [ "https://www.pixiv.net/*" ]
    } ],
-   "declarative_net_request": {
-      "rule_resources": [ {
-         "enabled": false,
-         "id": "ruleset",
-         "path": "json/rules.json"
-      } ]
-   },
    "description": "pixivのイラスト・マンガ・小説を、ページ移動せずにポップアップで表示する拡張機能です。",
    "host_permissions": [ "https://www.pixiv.net/*" ],
    "icons": {
@@ -51,7 +44,7 @@
    "options_ui": {
       "page": "html/options.html"
    },
-   "permissions": [ "storage", "declarativeNetRequest" ],
+   "permissions": [ "storage" ],
    "update_url": "https://clients2.google.com/service/update2/crx",
    "version": "1.6.5"
 }
