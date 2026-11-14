@@ -30,7 +30,7 @@
       "js": [ "js/script.js" ],
       "matches": [ "https://www.pixiv.net/*" ]
    }, {
-      "js": [ "js/escape-back.js" ],
+      "js": [ "js/shortcuts.js" ],
       "matches": [ "https://www.pixiv.net/*" ]
    } ],
    "description": "pixivのイラスト・マンガ・小説を、ページ移動せずにポップアップで表示する拡張機能です。",
