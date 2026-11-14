@@ -29,6 +29,9 @@
       "css": [ "css/script.css" ],
       "js": [ "js/script.js" ],
       "matches": [ "https://www.pixiv.net/*" ]
+   }, {
+      "js": [ "js/escape-back.js" ],
+      "matches": [ "https://www.pixiv.net/*" ]
    } ],
    "description": "pixivのイラスト・マンガ・小説を、ページ移動せずにポップアップで表示する拡張機能です。",
    "host_permissions": [ "https://www.pixiv.net/*" ],
